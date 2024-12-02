@@ -1,6 +1,7 @@
 import GamePlugin from '@plugin/GamePlugin'
 
 import { hasProps, isInRange } from '@utils/validation'
+import Room from '@objects/room/Room'
 
 
 export default class Actions extends GamePlugin {
@@ -31,8 +32,17 @@ export default class Actions extends GamePlugin {
         user.x = args.x
         user.y = args.y
         user.frame = 1
-
-        user.room.send(user, 'send_position', { id: user.id, x: args.x, y: args.y })
+        if (user.room) {
+            user.room.send(user, 'send_position', { id: user.id, x: args.x, y: args.y })
+        } else if (user.roomId) {
+            Room.allRooms[user.roomId].send(
+                user, 
+                'send_position', 
+                { id: user.id, x: args.x, y: args.y }
+            )
+        } else {
+            console.error("Invalid action")
+        }
     }
 
     sendFrame(args, user) {
