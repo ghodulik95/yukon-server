@@ -47,9 +47,14 @@ export default class Server {
     }
     
     fedServer() {
+        if (!this.config.federation.enabled) {
+            console.error("Fed server setup called even though federation is not enabled.")
+            return
+        }
+        
         const WebSocket = require('ws');
 
-        const server = new WebSocket.Server({ port: 3001 });
+        const server = new WebSocket.Server({ port: this.config.federation.listen_to_port });
 
         server.on('connection', (ws) => {
             console.log('Client connected')
@@ -106,7 +111,9 @@ export default class Server {
     
     
     sendMessageToHttpServer(message) {
-		fetch('http://localhost:3000/emit-federated', {
+        const port = this.config.federation.emit_to_port
+        const url = 'http://localhost:' + port
+		fetch(url, {
     		method: 'POST', // Change to GET, PUT, DELETE as needed
     		headers: {
         		'Content-Type': 'application/json',
@@ -115,40 +122,41 @@ export default class Server {
 		})
     	.then((response) => "Got response") // Parse JSON response
     	.then((data) => {
-        	console.log('Payload sent successfully');
+        	console.log('Successfully emitted federated event');
     	})
     	.catch((error) => {
-        	console.error('Error:', error);
+        	console.error('Unable to emit federated event:', error);
     	});
 	}
 
     onFedMessage(message) {
-        console.log("Received Fed Message", message)
         this.handler.handle({action: message.action, args: message.args, isFederated: true}, message.user)
    }
 
     onMessage(message, user) {
         if (!this.config.rateLimit.enabled) {
-            const serverMessages = ['login', 'token_login', 'join_server', 'game_auth', 'load_player', 'join_room']
-            const supportedFedMessages = [
-                'join_room', 
-                'send_message', 
-                'send_safe', 
-                'send_emote', 
-                'snowball', 
-                'send_position',
-                'send_frame']
-            
-            const sendToServer = serverMessages.includes(message.action) || !supportedFedMessages.includes(message.action)
-            const sendToFed = supportedFedMessages.includes(message.action)
-            
-            if (sendToServer) {
-                console.log("Sending nominal")
+            if (this.config.federation.enabled) {
+                const serverMessages = ['login', 'token_login', 'join_server', 'game_auth', 'load_player', 'join_room']
+                const supportedFedMessages = [
+                    'join_room', 
+                    'send_message', 
+                    'send_safe', 
+                    'send_emote', 
+                    'snowball', 
+                    'send_position',
+                    'send_frame']
+                
+                const sendToServer = serverMessages.includes(message.action) || !supportedFedMessages.includes(message.action)
+                const sendToFed = supportedFedMessages.includes(message.action)
+                
+                if (sendToServer) {
+                    this.handler.handle(message, user)
+                }
+                if (sendToFed) {
+                    this.sendMessageToHttpServer({ action: message.action, args: message.args, user: user.toJSON() })
+                }
+            } else {
                 this.handler.handle(message, user)
-            }
-            if (sendToFed) {
-                console.log("Sending federated")
-                this.sendMessageToHttpServer({ action: message.action, args: message.args, user: user.toJSON() })
             }
             return
         }

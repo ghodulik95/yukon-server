@@ -19,8 +19,10 @@ class World extends Server {
 
         super(id, users, db, handler, config)
         
-        if (id != 'Login') {
-            this.fedServer()
+        if (this.config.federation.enabled) {
+            if (id != 'Login') {
+                this.fedServer()
+            }
         }
     }
 

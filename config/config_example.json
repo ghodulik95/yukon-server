@@ -45,5 +45,10 @@
     "game": {
         "preferredSpawn": 0,
         "iglooIdOffset": 2000
+    },
+    "federation": {
+        "enabled": false,
+        "emit_to_port": 3000,
+        "listen_to_port": 3001 
     }
 }
