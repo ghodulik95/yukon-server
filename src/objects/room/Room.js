@@ -1,12 +1,16 @@
 export default class Room {
+    static allRooms = {}
 
     constructor(data) {
         Object.assign(this, data)
+        //console.log("Roomdata", data)
 
         this.users = {}
 
         this.tables = {}
         this.waddles = {}
+        
+        Room.allRooms[data.id] = this
     }
 
     get userValues() {
@@ -51,6 +55,7 @@ export default class Room {
      */
     send(user, action, args = {}, filter = [user], checkIgnore = false) {
         let users = this.userValues.filter(u => !filter.includes(u))
+        users = users.filter(u => u.id != user.id)
 
         for (let u of users) {
             if (checkIgnore && u.ignores.includes(user.id)) {

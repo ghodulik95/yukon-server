@@ -31,6 +31,7 @@ const GameUserMixin = {
         this.token = {}
 
         this.room
+        this.roomId
         this.waddle
         this.minigameRoom
 
@@ -94,6 +95,7 @@ const GameUserMixin = {
         this.x = x
         this.y = y
         this.frame = 1
+        this.roomId = room.id
 
         this.room.add(this)
     },
@@ -276,6 +278,7 @@ const GameUserMixin = {
     },
 
     toJSON() {
+        console.log("TO JSON GAMEMIXIN CALLED")
         return pick(this,
             'id',
             'username',
@@ -291,7 +294,8 @@ const GameUserMixin = {
             'flag',
             'x',
             'y',
-            'frame'
+            'frame',
+            'roomId'
         )
     }
 

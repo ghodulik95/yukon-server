@@ -1,4 +1,11 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+CREATE DATABASE yukon;
+CREATE USER 'yukon'@'localhost' IDENTIFIED BY 'my_password';
+GRANT ALL PRIVILEGES ON yukon.* TO 'yukon'@'localhost';
+
+FLUSH PRIVILEGES;
+
+USE yukon;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
