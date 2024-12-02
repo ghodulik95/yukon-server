@@ -1,7 +1,7 @@
 import GamePlugin from '@plugin/GamePlugin'
 
 import { hasProps, isNumber, isString, isLength } from '@utils/validation'
-
+import Room from '@objects/room/Room'
 
 export default class Chat extends GamePlugin {
 
@@ -56,8 +56,16 @@ export default class Chat extends GamePlugin {
         if (args.message.startsWith('!') && this.processCommand(args.message, user)) {
             return
         }
-
-        user.room.send(user, 'send_message', { id: user.id, message: args.message }, [user], true)
+        if (user.room) {
+            user.room.send(user, 'send_message', { id: user.id, message: args.message }, [user], true)
+        } else {
+            Room.allRooms[user.roomId].send(
+                user,
+                'send_message',
+                { id: user.id, message: args.message },
+                [user],
+                true)
+        }
     }
 
     sendSafe(args, user) {
@@ -68,8 +76,18 @@ export default class Chat extends GamePlugin {
         if (!isNumber(args.safe)) {
             return
         }
-
-        user.room.send(user, 'send_safe', { id: user.id, safe: args.safe }, [user], true)
+        
+        if (user.room) {
+            user.room.send(user, 'send_safe', { id: user.id, safe: args.safe }, [user], true)
+        } else {
+            Room.allRooms[user.roomId].send(
+                user,
+                'send_safe',
+                 { id: user.id, safe: args.safe },
+                 [user],
+                 true
+            )
+        }
     }
 
     sendEmote(args, user) {
@@ -80,8 +98,11 @@ export default class Chat extends GamePlugin {
         if (!isNumber(args.emote)) {
             return
         }
-
-        user.room.send(user, 'send_emote', { id: user.id, emote: args.emote }, [user], true)
+        if (user.room) {
+            user.room.send(user, 'send_emote', { id: user.id, emote: args.emote }, [user], true)
+        } else {
+            Room.allRooms[user.roomId].send(user, 'send_emote', { id: user.id, emote: args.emote }, [user], true)
+        }
     }
 
     sendJoke(args, user) {
@@ -92,8 +113,11 @@ export default class Chat extends GamePlugin {
         if (!isNumber(args.joke)) {
             return
         }
-
-        user.room.send(user, 'send_joke', { id: user.id, joke: args.joke }, [user], true)
+        if (user.room) {
+            user.room.send(user, 'send_joke', { id: user.id, joke: args.joke }, [user], true)
+        } else {
+            Room.allRooms[user.roomId].send(user, 'send_joke', { id: user.id, joke: args.joke }, [user], true)
+        }
     }
 
     sendTour(args, user) {

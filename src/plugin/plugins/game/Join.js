@@ -3,6 +3,7 @@ import GamePlugin from '@plugin/GamePlugin'
 import { isNumber } from '@utils/validation'
 
 import Igloo from '@objects/room/Igloo'
+import Room from '@objects/room/Room'
 
 
 export default class Join extends GamePlugin {
@@ -55,7 +56,14 @@ export default class Join extends GamePlugin {
             return
         }
 
-        user.joinRoom(this.rooms[args.room], args.x, args.y)
+        if (user.joinRoom) {
+            user.joinRoom(this.rooms[args.room], args.x, args.y)
+        } else {
+            if (args.room != user.roomId) {
+                Room.allRooms[user.roomId].remove(user, true)
+                Room.allRooms[args.room].add(user, true)
+            }
+        }
     }
 
     async joinIgloo(args, user) {

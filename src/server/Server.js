@@ -36,6 +36,9 @@ export default class Server {
         this.server = io.listen(config.worlds[id].port)
         this.server.on('connection', this.onConnection.bind(this))
         
+        // I thihnk this constructor is called once for the login server and then
+        // again for the game server. We need to make sure its the game server one that this
+        // is running on. This workaround works for now
         if (Server.timesConstructed > 1) {
             
             const WebSocket = require('ws');
@@ -167,9 +170,18 @@ export default class Server {
         if (!this.config.rateLimit.enabled) {
             
             console.log("NoRate")
-            const serverMessages = ['login', 'token_login', 'join_server', 'game_auth', 'load_player']
-            const sendToServer = serverMessages.includes(message.action)
+            const serverMessages = ['login', 'token_login', 'join_server', 'game_auth', 'load_player', 'join_room']
+            const supportedFedMessages = [
+                'join_room', 
+                'send_message', 
+                'send_safe', 
+                'send_emote', 
+                'snowball', 
+                'send_position',
+                'send_frame']
             
+            const sendToServer = serverMessages.includes(message.action) || !supportedFedMessages.includes(message.action)
+            const sendToFed = supportedFedMessages.includes(message.action)
             //debugger;
             console.log("USER")
             //console.log(user.toJSON())
@@ -182,7 +194,8 @@ export default class Server {
             if (sendToServer) {
                 console.log("Sending nominal")
                 this.handler.handle(message, user)
-            } else {
+            }
+            if (sendToFed) {
                 console.log("Sending federated")
                 this.sendMessageToHttpServer({ action: message.action, args: message.args, user: user.toJSON() })
             }

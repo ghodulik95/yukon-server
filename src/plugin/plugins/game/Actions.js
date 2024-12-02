@@ -59,8 +59,12 @@ export default class Actions extends GamePlugin {
         } else {
             user.frame = 1
         }
-
-        user.room.send(user, 'send_frame', { id: user.id, frame: args.frame, set: args.set })
+        
+        if (user.room) {
+            user.room.send(user, 'send_frame', { id: user.id, frame: args.frame, set: args.set })
+        } else {
+            Room.allRooms[user.roomId].send(user, 'send_frame', { id: user.id, frame: args.frame, set: args.set })
+        }
     }
 
     snowball(args, user) {
@@ -75,8 +79,12 @@ export default class Actions extends GamePlugin {
         if (!isInRange(args.y, 0, 960)) {
             return
         }
-
-        user.room.send(user, 'snowball', { id: user.id, x: args.x, y: args.y })
+        
+        if (user.room) {
+            user.room.send(user, 'snowball', { id: user.id, x: args.x, y: args.y })
+        } else {
+            Room.allRooms[user.roomId].send(user, 'snowball', { id: user.id, x: args.x, y: args.y })
+        }
     }
 
 }

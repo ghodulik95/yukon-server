@@ -21,18 +21,22 @@ export default class Room {
         return Object.keys(this.users).length >= this.maxUsers
     }
 
-    add(user) {
-        this.users[user.socket.id] = user
-
-        if (this.game) {
-            return user.send('join_game_room', { game: this.id })
+    add(user, isFederated=false) {
+        if (!isFederated) {
+            this.users[user.socket.id] = user
         }
 
-        user.send('join_room', { room: this.id, users: this.userValues })
+        if (!isFederated && this.game) {
+            return user.send('join_game_room', { game: this.id })
+        }
+        
+        if (!isFederated) {
+            user.send('join_room', { room: this.id, users: this.userValues })
+        }
         this.send(user, 'add_player', { user: user })
     }
 
-    remove(user) {
+    remove(user, isFederated=false) {
         if (!this.game) {
             this.send(user, 'remove_player', { user: user.id })
         }
@@ -41,7 +45,9 @@ export default class Room {
             this.matchmaker.remove(user)
         }
 
-        delete this.users[user.socket.id]
+        if (!isFederated) {
+            delete this.users[user.socket.id]
+        }
     }
 
     /**
