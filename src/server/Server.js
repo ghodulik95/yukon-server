@@ -5,7 +5,6 @@ import RateLimiterFlexible from 'rate-limiter-flexible'
 
 
 export default class Server {
-    static timesConstructed = 0
 
     constructor(id, users, db, handler, config) {
         Server.timesConstructed++
@@ -35,47 +34,6 @@ export default class Server {
 
         this.server = io.listen(config.worlds[id].port)
         this.server.on('connection', this.onConnection.bind(this))
-        
-        // I thihnk this constructor is called once for the login server and then
-        // again for the game server. We need to make sure its the game server one that this
-        // is running on. This workaround works for now
-        if (Server.timesConstructed > 1) {
-            
-            const WebSocket = require('ws');
-
-            const server = new WebSocket.Server({ port: 3001 });
-
-            server.on('connection', (ws) => {
-                console.log('Client connected');
-                ws.on('message', (message) => {
-                    console.log('Received:', JSON.parse(message));
-                    const parsedMessage = JSON.parse(message)
-                    //ws.send('Echo: ' + message);
-                    this.onFedMessage(parsedMessage.data)
-                });
-            });
-
-            console.log('WebSocket server listening on ws://localhost:3001');
-
-            /*
-            let fedIO = this.createIo({
-                https: false,
-                cors: {
-                    origin: '*',
-                    methods: ['GET', 'POST']
-                },
-                path: '/federated',
-                
-                transports: ['websocket'] // Disable polling
-            })
-            this.fedServer = fedIO.listen(3001)
-            this.fedServer.on('connection', (socket) => {
-                console.log(`Client connected: ${socket.id}`);
-                socket.on('message', (message) => this.onFedMessage(message))
-            });
-            //this.fedServer.on('message', (message) => this.onFedMessage(message))
-            */
-        }
     }
 
     createLimiter(points, duration = 1) {
@@ -91,6 +49,20 @@ export default class Server {
             : this.httpServer()
 
         return require('socket.io')(server, options)
+    }
+    
+    fedServer() {
+        const WebSocket = require('ws');
+
+        const server = new WebSocket.Server({ port: 3001 });
+
+        server.on('connection', (ws) => {
+            console.log('Client connected')
+            ws.on('message', (message) => {
+                const parsedMessage = JSON.parse(message)
+                this.onFedMessage(parsedMessage.data)
+            });
+        });
     }
 
     httpServer() {
@@ -139,21 +111,16 @@ export default class Server {
     
     
     sendMessageToHttpServer(message) {
-		const payload = message
-        console.log("Building Payload for server")
-        //console.log(payload)
-        //console.log(JSON.stringify(payload))
-
 		fetch('http://localhost:3000/emit-federated', {
     		method: 'POST', // Change to GET, PUT, DELETE as needed
     		headers: {
         		'Content-Type': 'application/json',
     		},
-    		body: JSON.stringify(payload),
+    		body: JSON.stringify(message),
 		})
     	.then((response) => "Got response") // Parse JSON response
     	.then((data) => {
-        	console.log('Payload sent successfully:', data);
+        	console.log('Payload sent successfully');
     	})
     	.catch((error) => {
         	console.error('Error:', error);
@@ -166,10 +133,7 @@ export default class Server {
    }
 
     onMessage(message, user) {
-        console.log("Message")
         if (!this.config.rateLimit.enabled) {
-            
-            console.log("NoRate")
             const serverMessages = ['login', 'token_login', 'join_server', 'game_auth', 'load_player', 'join_room']
             const supportedFedMessages = [
                 'join_room', 
@@ -182,15 +146,7 @@ export default class Server {
             
             const sendToServer = serverMessages.includes(message.action) || !supportedFedMessages.includes(message.action)
             const sendToFed = supportedFedMessages.includes(message.action)
-            //debugger;
-            console.log("USER")
-            //console.log(user.toJSON())
-            //console.log("DB")
-            //console.log(user.db)
-            //console.log("HANDLER")
-            //console.log(user.handler)
-            //console.log("ADAPTER")
-            //console.log(user.adapter)
+            
             if (sendToServer) {
                 console.log("Sending nominal")
                 this.handler.handle(message, user)

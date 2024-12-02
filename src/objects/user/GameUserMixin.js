@@ -278,7 +278,6 @@ const GameUserMixin = {
     },
 
     toJSON() {
-        console.log("TO JSON GAMEMIXIN CALLED")
         return pick(this,
             'id',
             'username',

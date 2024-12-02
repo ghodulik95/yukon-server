@@ -18,6 +18,10 @@ class World extends Server {
         handler = new handler(id, users, db, config)
 
         super(id, users, db, handler, config)
+        
+        if (id != 'Login') {
+            this.fedServer()
+        }
     }
 
 }
