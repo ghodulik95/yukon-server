@@ -7,11 +7,6 @@ import RateLimiterFlexible from 'rate-limiter-flexible'
 export default class Server {
 
     constructor(id, users, db, handler, config) {
-        Server.timesConstructed++
-        //if (Server.instance) {
-		//	return Server.instance;
-		//}
-		console.log("CONSTRUCTING SERVER");
 		this.id = id
         this.users = users
         this.db = db
