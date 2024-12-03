@@ -3,6 +3,11 @@
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
 { config, pkgs, lib, ... }:
+
+let
+  # Fetch nixpkgs-unstable for accessing nodejs_23
+  unstablePkgs = import <nixos-unstable> {};
+in
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -103,7 +108,7 @@
     geany
     git
     tmux
-    nodejs                # Node.js runtime (includes npm)
+    unstablePkgs.nodejs_23             # Node.js runtime (includes npm)
     mysql-client          # MySQL client tools for interacting with the database
     mariadb               # MySQL-compatible database server
     unzip
